@@ -22,7 +22,7 @@ Standes.
 > - Öffnet den Ordner Tut09_HierarchyAndInput in Visual Studio Code, 
 >   Erstellt das Projekt (Build) und lasst es im Debugger laufen.
 > - Öffnet die Source-Code-Datei HierarchyInput.cs und betrachtet die Methoden
->   `Init()` und `RenderAFrame`.
+>   `Init()` und `RenderAFrame()`.
 > - Identifiziert Änderungen zur letzten Übung.
 
 Wie in der Lektion 08 wird eine Szene, die nur aus einem Cuboid-Objekt (Quader)
@@ -43,20 +43,17 @@ erstreckt):
 ```C#
     return new SceneContainer
     {
-        Children = new List<SceneNodeContainer>
+        Children = new List<SceneNode>
         {
-            new SceneNodeContainer
+            new SceneNode
             {
-                Components = new List<SceneComponentContainer>
+                Components = new List<SceneComponent>
                 {
                     // TRANSFORM COMPONENT
                     _baseTransform,
 
                     // SHADER EFFECT COMPONENT
-                    new ShaderEffectComponent
-                    {
-                        Effect = SimpleMeshes.MakeShaderEffect(new float3(0.7f, 0.7f, 0.7f), new float3(0.7f, 0.7f, 0.7f), 5)
-                    },
+                    ShaderCodeBuilder.MakeShaderEffect(new float4 (0.7f, 0.7f, 0.7f, 1)),
 
                     // MESH COMPONENT
                     SimpleMeshes.CreateCuboid(new float3(10, 2, 10))
@@ -87,14 +84,14 @@ erkennen, als im letzten Beispiel.
 >   setzt und im Watch-Fenster des Debugger die Hierarchie anschaut.
 >
 > - Lest den [Abschnitt im C# Programmierhandbuch, der die Objekt- und Auflistungsinitialisierer
->   erklärt](https://docs.microsoft.com/de-de/dotnet/articles/csharp/programming-guide/classes-and-structs/object-and-collection-initializers). Verdeutlich Euch, wie die Liste der drei Komponenten im vorigen Beispiel über Hinterinanderausführungen der
+>   erklärt](https://docs.microsoft.com/de-de/dotnet/articles/csharp/programming-guide/classes-and-structs/object-and-collection-initializers). Verdeutlicht euch, wie die Liste der drei Komponenten im vorigen Beispiel über Hinterinanderausführungen der
 >   `Add()`-Anweisungen aufgebaut wurde und wie diese nun über eine durch Komma getrennte Aufzählung realisiert wird.
 >
 
 ### Mehr Objekte
 
 Es soll nun Zug um Zug ein Modell aufgebaut werden, dass so aussieht, wie der 
-[Roboterarm aus der ersten Lektion](https://sftp.hs-furtwangen.de/~mch/computergrafik/script/chapter01/lecture01/#3-hierarchien):
+[Roboterarm aus der ersten Lektion](https://sftp.hs-furtwangen.de/~lochmann/computergrafik2019/script/chapter01/lecture01/#3-hierarchien-outliner):
 
 ![Cuboter](_images/Robot.png)
 
@@ -117,8 +114,8 @@ betragen, die langen Kanten sollen zehn Einheiten messen. Die Arme sollen sich j
 >   besteht, der in der Mitte auf dem grauen Quader steht. Dazu muss
 >   
 >   - Ein neues Feld (Klassenvariable) für die Transformationskomponente eingefügt werden
->     (`TransformComponent _bodyTransform`)
->   - Ein zweiter mit `new` erzugter `SceneNodeContainer` in die `Children` Liste der Szene eingefügt werden, der
+>     (`Transform _bodyTransform`)
+>   - Ein zweiter mit `new` erzeugter `SceneNode` in die `Children` Liste der Szene eingefügt werden, der
 >     wiederum drei Komponenten enthält.
 >
 > - Versucht zunächst selbst die Stellen im o.a. Code zu finden, wo neue Stellen einzufügen sind. Falls es nicht klappt,
@@ -126,19 +123,19 @@ betragen, die langen Kanten sollen zehn Einheiten messen. Die Arme sollen sich j
 >
 
 ```C#
-    private TransformComponent _baseTransform;
-    private TransformComponent _bodyTransform;
+    private Transform _baseTransform;
+    private Transformt _bodyTransform;
 
     SceneContainer CreateScene()
     {
         // Initialize transform components that need to be changed inside "RenderAFrame"
-        _baseTransform = new TransformComponent
+        _baseTransform = new Transform
         {
             Rotation = new float3(0, 0, 0),
             Scale = new float3(1, 1, 1),
             Translation = new float3(0, 0, 0)
         };
-        _bodyTransform = new TransformComponent
+        _bodyTransform = new Transform
         {
             Rotation = new float3(0, 0, 0),
             Scale = new float3(1, 1, 1),
@@ -155,14 +152,11 @@ betragen, die langen Kanten sollen zehn Einheiten messen. Die Arme sollen sich j
                 {
                     Components = new List<SceneComponentContainer>
                     {
-                        // TRANSFROM COMPONENT
+                        // TRANSFORM COMPONENT
                         _baseTransform,
 
                         // SHADER EFFECT COMPONENT
-                        new ShaderEffectComponent
-                        {
-                            Effect = SimpleMeshes.MakeShaderEffect(new float3(0.7f, 0.7f, 0.7f), new float3(0.7f, 0.7f, 0.7f), 5)
-                        },
+                        ShaderCodeBuilder.MakeShaderEffect(new float4 (0.7f, 0.7f, 0.7f, 1)),
 
                         // MESH COMPONENT
                         SimpleMeshes.CreateCuboid(new float3(10, 2, 10))
@@ -174,10 +168,7 @@ betragen, die langen Kanten sollen zehn Einheiten messen. Die Arme sollen sich j
                     Components = new ChildList
                     {
                         _bodyTransform,
-                         new ShaderEffectComponent
-                        {
-                            Effect = SimpleMeshes.MakeShaderEffect(new float3(1, 0, 0), new float3(0.7f, 0.7f, 0.7f), 5)
-                        },
+                        ShaderCodeBuilder.MakeShaderEffect(new float4 (1, 0, 0, 1)),
                         SimpleMeshes.CreateCuboid(new float3(2, 10, 2))
                     }
                 }
@@ -188,7 +179,7 @@ betragen, die langen Kanten sollen zehn Einheiten messen. Die Arme sollen sich j
 
 > #### TODO
 >
-> - Wer o.g. Code kopiert hat, sollte folgende Fragen bantworten können:
+> - Wer o.g. Code kopiert hat, sollte folgende Fragen beantworten können:
 >
 >   - Wo wird die Farbe für den roten body festgelegt? 
 >   - Wo wird die Position für den roten Cuboid festgelegt?
@@ -212,10 +203,7 @@ Somit sollten wir den neu einzufügenden grünen Oberarm nicht als drittes Kind 
         Components = new List<SceneComponentContainer>
         {
             _bodyTransform,
-            new ShaderEffectComponent
-            {
-                Effect = SimpleMeshes.MakeShaderEffect(new float3(1, 0, 0), new float3(0.7f, 0.7f, 0.7f), 5)
-            },
+            ShaderCodeBuilder.MakeShaderEffect(new float4(1, 0, 0, 1)),
             SimpleMeshes.CreateCuboid(new float3(2, 10, 2))
         },
         Children = new ChildList
@@ -226,10 +214,7 @@ Somit sollten wir den neu einzufügenden grünen Oberarm nicht als drittes Kind 
                 Components = new List<SceneComponentContainer>
                 {
                     _upperArmTransform,
-                    new ShaderEffectComponent
-                    {
-                        Effect = SimpleMeshes.MakeShaderEffect(new float3(0, 1, 0), new float3(0.7f, 0.7f, 0.7f), 5)
-                    },
+                    ShaderCodeBuilder.MakeShaderEffect(new float4(0, 1, 0, 1)),
                     SimpleMeshes.CreateCuboid(new float3(2, 10, 2))
                 },
             }
@@ -239,10 +224,10 @@ Somit sollten wir den neu einzufügenden grünen Oberarm nicht als drittes Kind 
 
 > #### TODO
 >
-> - Fügt mit Hife des obenstehenden Code den grünen Arm als Kind der roten Säule hinzu.
+> - Fügt mit Hilfe des obenstehenden Code den grünen Arm als Kind der roten Säule hinzu.
 > - erzeugt die `_upperArmTransform`-Komponente analog zu den beiden anderen Transform-Komponenten.
-> - Setzt die Koordinaten des `Translation`-Feldes der Transform-Komponte so, dass der grüne Arm
->   exakt wie in o.a. Skizze und in folgdendem Screenshot erscheint.
+> - Setzt die Koordinaten des `Translation`-Feldes der Transform-Komponente so, dass der grüne Arm
+>   exakt wie in o.a. Skizze und in folgendem Screenshot erscheint.
 >
 >   ![Grüner Arm](_images/GreenArm.png)
 > 
@@ -251,14 +236,14 @@ Somit sollten wir den neu einzufügenden grünen Oberarm nicht als drittes Kind 
 ## Pivot Point
 
 Da nun der grüne Oberarm ein Kind der roten Säule ist, müsste dieser ja alle Bewegungen des roten Armes 
-mitmachen. Das wollen wir ausprobierern
+mitmachen. Das wollen wir ausprobieren
 
 > #### TODO
 > 
 > - Rotiert die rote Säule (`Body`) ein wenig um die Y-Achse, indem Ihr deren Transform-Komponente verändert:
 >
 >   ```C#
->      _bodyTransform = new TransformComponent
+>      _bodyTransform = new Transform
 >      {
 >          Rotation = new float3(0, 0.2f, 0),
 >          Scale = new float3(1, 1, 1),
@@ -277,7 +262,7 @@ Arm um seine lokale X-Achse gegenüber der roten Säule verdrehen lassen.
 > - Rotiert den grünen Arm (`UpperArm`) ungefähr 90° um die X-Achse, indem Ihr dessen Transform-Komponente verändert:
 >
 >   ```C#
->      _upperArmTransform = new TransformComponent
+>      _upperArmTransform = new Transform
 >      {
 >          Rotation = new float3(1.5f, 0, 0),
 >          Scale = new float3(1, 1, 1),
@@ -287,18 +272,18 @@ Arm um seine lokale X-Achse gegenüber der roten Säule verdrehen lassen.
 >
 > - Warum ist die Angabe `1.5f` ungefähr 90°?
 
-Ergebnis? Der Roboter sieht ziemlich kapputt aus:
+Ergebnis? Der Roboter sieht ziemlich kaputt aus:
 
 ![Grüner Arm Futsch](_images/RobotBroken.png)
 
 Der Grüne Arm scheint aus dem Gelenk gesprungen zu sein. Das liegt daran, dass der Koordinatenursprung des Cuboid-Körpers
-immer in der Mitte des Quaders liegt. Sämtliche Transformationen in der `TransformComponent` beziehen sich auf
+immer in der Mitte des Quaders liegt. Sämtliche Transformationen in der `Transform` beziehen sich auf
 den Ursprung, so auch die Rotation. Das Rotationszentrum eines Körpers bezeichnet man auch mit ***Pivot Point***.
 
 Notiz am Rande: Mit dem `Translation`-Feld (`Translation = new float3(2, 8, 0)`) haben wir die Mitte des grünen
 Quaders so weit nach oben geschoben, bis wir die gewünschte Position erreicht haben. 
 
-Wir wollen nun den Pivot Point verändern. Das können wir, indem wir eine weitere Ebene in unsere Hierachie einfügen, 
+Wir wollen nun den Pivot Point verändern. Das können wir, indem wir eine weitere Ebene in unsere Hierarchie einfügen, 
 die allerdings kein Mesh (und auch kein Material enthält). Ausgehend von der Mitte der roten Säule schieben wir unser
 Koordinatensystem mit Hilfe eines "leeren" `SceneNodeContainer` zunächst so weit nach oben, dass der Ursprung des 
 neuen Koordinatensystem im Scharnier zwischen Grün und Rot liegt. In diese Node fügen wir dann eine weitere Child-Node
@@ -323,16 +308,13 @@ ein, die die eigentliche Geometrie enthält und diese an die richtige (relative)
 >            {
 >                Components = new List<SceneComponentContainer>
 >                {
->                    new TransformComponent
+>                    new Transform
 >                    {
 >                        Rotation = new float3(0, 0, 0),
 >                        Scale = new float3(1, 1, 1),
 >                        Translation = new float3(0, 4, 0)
 >                    },
->                    new ShaderEffectComponent
->                    {
->                        Effect = SimpleMeshes.MakeShaderEffect(new float3(0, 1, 0), new float3(0.7f, 0.7f, 0.7f), 5)
->                    },
+>                    ShaderCodeBuilder.MakeShaderEffect(new float4(0, 1, 0, 1)),
 >                    SimpleMeshes.CreateCuboid(new float3(2, 10, 2))
 >                }
 >            }
@@ -340,13 +322,13 @@ ein, die die eigentliche Geometrie enthält und diese an die richtige (relative)
 >    }
 >   ```
 >
-> - Verändert die `TransformComponent`für den grünen Upper Arm, so dass dessen Pivot Point nun auf der Y-Achse
+> - Verändert die `Transform`für den grünen Upper Arm, so dass dessen Pivot Point nun auf der Y-Achse
 >   des Welt-Koordinatensystems bei 10 zum liegen kommt. Gemessen von der Mitte der roten Säule (die ja das 
 >   Eltern-Objekt ist und daher der Ursprung des lokalen Koordinatensystems für dessen Kinder), sind das
 >   4 Einheiten nach oben
 >
 >   ```C#
->   _upperArmTransform = new TransformComponent
+>   _upperArmTransform = new Transform
 >   {
 >       Rotation = new float3(1.5f, 0, 0),
 >       Scale = new float3(1, 1, 1),
@@ -375,7 +357,7 @@ Schließlich fehlt noch der blaue Unterarm.
 >   Grundhaltung aufzubauen.
 >
 > - Sollte es gar nicht klappen, verwendet ***AUSNAHMSWEISE*** als Vorgriff die Implementierung im
->   [_Completed_-Projekt](../Tut09_HierarchyAndInputCompleted/HierarchyInput.cs#L27)
+>   [_Completed_-Projekt](../Tut09_HierarchyAndInputCompleted/Tut09_HierarchyAndInput.cs#L29)
 >
 
 
@@ -402,7 +384,7 @@ Mit der Anweisung
 ```C#
 using static Fusee.Engine.Core.Input;
 ```
-ganz oben in der Datei [HierarchyInput.cs](HierarchyInput.cs#L12) können wir im Code direkt auf die o.G.
+ganz oben in der Datei [Tut09_HierarchyAndInput.cs](Tut09_HierarchyAndInput.cs#L09) können wir im Code direkt auf die o.G.
 Felder für die Eingabegeräte zugreifen. 
 
 > #### TODO
@@ -424,7 +406,7 @@ verwendet werden.
 Eigenschaft              | Datentyp |  Beschreibung
 -------------------------|----------|--------------------------
 `Mouse.LeftButton`       | `bool`   | Gibt an, ob die linke Maustaste gerade gedrückt ist (`true`) oder nicht (`false`).
-`Mouse.MidlleButton`     | `bool`   | Gibt an, ob die mittlere Maustaste gerade gedrückt ist (`true`) oder nicht (`false`).
+`Mouse.MiddleButton`     | `bool`   | Gibt an, ob die mittlere Maustaste gerade gedrückt ist (`true`) oder nicht (`false`).
 `Mouse.RightButton`      | `bool`   | Gibt an, ob die rechte Maustaste gerade gedrückt ist (`true`) oder nicht (`false`).
 `Mouse.Position`         | `float2` | Aktuelle Position des Maus-Cursor in Pixeln ((0, 0) = linke obere Ecke des Render-Fensters).
 `Mouse.Velocity`         | `float2` | Aktuelle Geschwindigkeit des Maus-Cursor in Pixel/Sekunde entlang X- und Y-Achse.
@@ -466,9 +448,9 @@ Wir wollen nun den aktuellen Wert der `LeftRightAxis` dazu verwenden, die Rotati
 - Fügt Steuerungen für die beiden anderen Achsen des Roboters ein.
 - Fügt eine Möglichkeit ein, dass Benutzer die Kamera mit der Maus um das Geschehen drehen können:
   - Bei gedrückter linker  Maustaste
-    ([`Mouse.LeftButton`](https://github.com/FUSEEProjectTeam/Fusee/blob/develop/src/Engine/Core/MouseDevice.cs#L176))
+    ([`Mouse.LeftButton`](https://github.com/FUSEEProjectTeam/Fusee/blob/develop/src/Engine/Core/MouseDevice.cs#L174))
     soll die X-Komponente der aktuellen Mausgeschwindigkeit 
-    ([`Mouse.Velocity.x`](https://github.com/FUSEEProjectTeam/Fusee/blob/develop/src/Engine/Core/MouseDevice.cs#L101))
+    ([`Mouse.Velocity.x`](https://github.com/FUSEEProjectTeam/Fusee/blob/develop/src/Engine/Core/MouseDevice.cs#L99))
     als Parameter der Berechnung einer Änderungsrate für '_camAngle' verwendet werden.
   -  _Für Fortgeschrittene_: Baut eine Dämpfung ein, die den üblichen "Swipe"-Effekt nachstellt: Durch Maustaste-Drücken, 
     horizontales Bewegen und Loslassen während der Bewegung soll die aktuelle Drehgeschwindigkeit
@@ -478,7 +460,7 @@ Wir wollen nun den aktuellen Wert der `LeftRightAxis` dazu verwenden, die Rotati
   zu Öffnen und zu Schließen. Wie kann gewährleistet werden, dass es Zustände wie "ganz offen" und "ganz geschlossen"
   gibt, die nicht über- oder unterschritten werden können?
 - _Für Fortgeschrittene_: Schön wäre es, das Öffnen und Schließen jeweils durch einen einmaligen Tastendruck
-  ([`Keyboard.GetKey()`](https://github.com/FUSEEProjectTeam/Fusee/blob/develop/src/Engine/Core/KeyboardDevice.cs#L46))
+  ([`Keyboard.GetKey()`](https://github.com/FUSEEProjectTeam/Fusee/blob/develop/src/Engine/Core/KeyboardDevice.cs#L35))
   triggern zu können, nachdem der jeweilige Vorgang (Öffnen oder Schließen) dann selbständig abläuft.
 
 
