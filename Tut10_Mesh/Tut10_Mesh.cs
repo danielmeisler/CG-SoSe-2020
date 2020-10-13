@@ -31,7 +31,7 @@ namespace FuseeApp
                 Scale = new float3(1, 1, 1),
                 Translation = new float3(0, 0, 0)
             };
-
+            //Git Test
             // Setup the scene graph
             return new SceneContainer
             {
